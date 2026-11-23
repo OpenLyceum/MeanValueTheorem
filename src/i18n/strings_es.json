@@ -1,21 +1,58 @@
 {
-  "title": "Plantilla de Simulación",
+  "title": "Teorema del valor medio",
   "screens": {
-    "sim": "Simulación"
+    "drive": "Conducción",
+    "whenItApplies": "Cuándo se aplica"
   },
   "a11y": {
-    "screenSummary": {
-      "playArea": "El área de juego muestra el contenido principal de la simulación.",
-      "controlArea": "El área de control tiene un botón Restablecer todo que devuelve la simulación a su estado inicial.",
-      "interactionHint": "Explora la simulación interactuando con sus controles."
+    "drive": {
+      "screenSummary": {
+        "playArea": "Carretera y gráfica posición-tiempo con una secante y una tangente móvil.",
+        "controlArea": "Usa la reproducción, arrastra en la gráfica o ajusta el tiempo con las flechas.",
+        "interactionHint": "Conduce entre los puestos de control. ¿Cuándo tienen igual pendiente la tangente y la secante?"
+      }
     },
-    "currentDetails": "La simulación está en su estado inicial.",
-    "controls": {
-      "exampleControl": "Control de ejemplo"
+    "whenItApplies": {
+      "screenSummary": {
+        "playArea": "Gráficas posición-tiempo de un viaje suave y otro con una esquina.",
+        "controlArea": "Usa la reproducción, arrastra en la gráfica o ajusta el tiempo con las flechas.",
+        "interactionHint": "Compara un viaje suave con otro cuya velocidad cambia bruscamente a los 5 s."
+      }
     }
   },
   "preferences": {
-    "title": "Simulación",
-    "exampleToggle": "Ejemplo de alternancia"
+    "title": "Simulación"
+  },
+  "lesson": {
+    "route": "Cambiar ruta",
+    "accelerating": "Aceleración constante",
+    "changing": "Aumento y reducción de velocidad",
+    "constant": "Velocidad constante",
+    "corner": "Cambio brusco de velocidad",
+    "time": "Tiempo (s)",
+    "position": "Posición (m)",
+    "speed": "Velocidad instantánea",
+    "average": "Velocidad media",
+    "undefined": "Indefinida en la esquina",
+    "oneSided": "Velocidad izquierda 5 m/s · Velocidad derecha 15 m/s",
+    "play": "Reproducir",
+    "pause": "Pausar",
+    "step": "Avanzar",
+    "mark": "Marcar y comprobar",
+    "reveal": "Mostrar coincidencias",
+    "hide": "Ocultar coincidencias",
+    "close": "A menos de 0,1 m/s en el tiempo marcado.",
+    "retry": "Prueba otro instante interior.",
+    "all": "Todos los instantes interiores coinciden.",
+    "none": "Ningún instante coincide.",
+    "matches": "Instantes que coinciden",
+    "secant": "Secante entre los puestos de control",
+    "tangent": "Tangente en el instante elegido",
+    "conditions": "Continua en [0, 10] y derivable en (0, 10).",
+    "which": "¿Qué condición falla en la esquina?",
+    "continuity": "Continuidad",
+    "differentiability": "Derivabilidad",
+    "continuousAnswer": "Observa la posición cerca de 5 s. Los dos lados se unen.",
+    "differentAnswer": "La gráfica es continua. Las pendientes laterales difieren a los 5 s."
   }
 }

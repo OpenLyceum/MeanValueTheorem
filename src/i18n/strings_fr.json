@@ -1,21 +1,58 @@
 {
-  "title": "Modèle de Simulation",
+  "title": "Théorème des accroissements finis",
   "screens": {
-    "sim": "Simulation"
+    "drive": "Trajet",
+    "whenItApplies": "Quand il s’applique"
   },
   "a11y": {
-    "screenSummary": {
-      "playArea": "La zone de jeu affiche le contenu principal de la simulation.",
-      "controlArea": "La zone de contrôle comporte un bouton Tout réinitialiser qui ramène la simulation à son état initial.",
-      "interactionHint": "Explorez la simulation en interagissant avec ses commandes."
+    "drive": {
+      "screenSummary": {
+        "playArea": "Route et graphe position-temps avec une sécante et une tangente mobile.",
+        "controlArea": "Utilisez la lecture, glissez sur le graphe ou réglez le temps avec les flèches.",
+        "interactionHint": "Parcourez le trajet. Quand la tangente et la sécante ont-elles la même pente ?"
+      }
     },
-    "currentDetails": "La simulation est dans son état initial.",
-    "controls": {
-      "exampleControl": "Contrôle d'exemple"
+    "whenItApplies": {
+      "screenSummary": {
+        "playArea": "Graphes position-temps d’un trajet régulier et d’un trajet avec un point anguleux.",
+        "controlArea": "Utilisez la lecture, glissez sur le graphe ou réglez le temps avec les flèches.",
+        "interactionHint": "Comparez un trajet régulier à un trajet dont la vitesse change brusquement à 5 s."
+      }
     }
   },
   "preferences": {
-    "title": "Simulation",
-    "exampleToggle": "Exemple de bascule"
+    "title": "Simulation"
+  },
+  "lesson": {
+    "route": "Changer de trajet",
+    "accelerating": "Accélération constante",
+    "changing": "Accélérations et ralentissements",
+    "constant": "Vitesse constante",
+    "corner": "Changement brusque de vitesse",
+    "time": "Temps (s)",
+    "position": "Position (m)",
+    "speed": "Vitesse instantanée",
+    "average": "Vitesse moyenne",
+    "undefined": "Non définie au point anguleux",
+    "oneSided": "Vitesse à gauche 5 m/s · Vitesse à droite 15 m/s",
+    "play": "Lecture",
+    "pause": "Pause",
+    "step": "Avancer",
+    "mark": "Marquer et vérifier",
+    "reveal": "Révéler les solutions",
+    "hide": "Masquer les solutions",
+    "close": "À moins de 0,1 m/s au temps marqué.",
+    "retry": "Essayez un autre instant intérieur.",
+    "all": "Tous les instants intérieurs conviennent.",
+    "none": "Aucun instant ne convient.",
+    "matches": "Instants solutions",
+    "secant": "Sécante entre les points de contrôle",
+    "tangent": "Tangente à l’instant choisi",
+    "conditions": "Continue sur [0, 10] et dérivable sur (0, 10).",
+    "which": "Quelle condition échoue au point anguleux ?",
+    "continuity": "Continuité",
+    "differentiability": "Dérivabilité",
+    "continuousAnswer": "Observez la position près de 5 s. Les deux côtés se rejoignent.",
+    "differentAnswer": "Le graphe est continu. Les pentes à gauche et à droite diffèrent à 5 s."
   }
 }

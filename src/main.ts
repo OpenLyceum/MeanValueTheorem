@@ -21,24 +21,29 @@ import "./brand.js";
 
 import { onReadyToLaunch, PreferencesModel, Sim } from "scenerystack/sim";
 import { Tandem } from "scenerystack/tandem";
+import { DriveScreen } from "./drive/DriveScreen.js";
 import { StringManager } from "./i18n/StringManager.js";
-import { SimPreferencesModel } from "./preferences/SimPreferencesModel.js";
-import { SimPreferencesNode } from "./preferences/SimPreferencesNode.js";
-import SimColors from "./SimColors.js";
-import { SimScreen } from "./sim-screen/SimScreen.js";
+import MeanValueTheoremColors from "./MeanValueTheoremColors.js";
+import { MeanValueTheoremPreferencesModel } from "./preferences/MeanValueTheoremPreferencesModel.js";
+import { MeanValueTheoremPreferencesNode } from "./preferences/MeanValueTheoremPreferencesNode.js";
+import { WhenItAppliesScreen } from "./when-it-applies/WhenItAppliesScreen.js";
 
 onReadyToLaunch(() => {
   const stringManager = StringManager.getInstance();
 
-  // Simulation-specific preferences; initial values come from simQueryParameters.
-  const simPreferences = new SimPreferencesModel(Tandem.ROOT.createTandem("preferences"));
+  // Simulation-specific preferences; initial values come from meanValueTheoremQueryParameters.
+  const simPreferences = new MeanValueTheoremPreferencesModel(Tandem.ROOT.createTandem("preferences"));
 
   const screens = [
-    new SimScreen({
-      // The screen name Property updates automatically when the locale changes
-      name: stringManager.getScreenNames().simStringProperty,
-      tandem: Tandem.ROOT.createTandem("simScreen"),
-      backgroundColorProperty: SimColors.backgroundColorProperty,
+    new DriveScreen({
+      name: stringManager.getScreenNames().driveStringProperty,
+      tandem: Tandem.ROOT.createTandem("driveScreen"),
+      backgroundColorProperty: MeanValueTheoremColors.backgroundColorProperty,
+    }),
+    new WhenItAppliesScreen({
+      name: stringManager.getScreenNames().whenItAppliesStringProperty,
+      tandem: Tandem.ROOT.createTandem("whenItAppliesScreen"),
+      backgroundColorProperty: MeanValueTheoremColors.backgroundColorProperty,
     }),
   ];
 
@@ -53,7 +58,7 @@ onReadyToLaunch(() => {
       simulationOptions: {
         customPreferences: [
           {
-            createContent: (tandem: Tandem) => new SimPreferencesNode(simPreferences, tandem),
+            createContent: (tandem: Tandem) => new MeanValueTheoremPreferencesNode(simPreferences, tandem),
           },
         ],
       },

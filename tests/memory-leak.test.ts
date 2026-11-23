@@ -9,11 +9,33 @@
  * tests below using forceGC().
  */
 
-// seed:leak-imports:start
+import { describe, expect, it, vi } from "vitest";
+import { MeanValueTheoremModel } from "../src/common/model/MeanValueTheoremModel.js";
 import { TimeModel } from "../src/common/TimeModel.js";
-// seed:leak-imports:end
+import { DriveModel } from "../src/drive/model/DriveModel.js";
+import { WhenItAppliesModel } from "../src/when-it-applies/model/WhenItAppliesModel.js";
 import { describeDisposalLeaks } from "./helpers/memoryLeak.js";
 
-// seed:leak-cases:start
-describeDisposalLeaks([{ name: "TimeModel", create: () => new TimeModel(), idempotentDispose: true }]);
-// seed:leak-cases:end
+describeDisposalLeaks([
+  { name: "MeanValueTheoremModel", create: () => new MeanValueTheoremModel("drive") },
+  { name: "TimeModel", create: () => new TimeModel(), idempotentDispose: true },
+  { name: "DriveModel", create: () => new DriveModel() },
+  { name: "WhenItAppliesModel", create: () => new WhenItAppliesModel() },
+]);
+
+describe("composed TimeModel disposal", () => {
+  it("screen models dispose their owned timer", () => {
+    {
+      const model = new DriveModel();
+      const spy = vi.spyOn(model.timer, "dispose");
+      model.dispose();
+      expect(spy).toHaveBeenCalledOnce();
+    }
+    {
+      const model = new WhenItAppliesModel();
+      const spy = vi.spyOn(model.timer, "dispose");
+      model.dispose();
+      expect(spy).toHaveBeenCalledOnce();
+    }
+  });
+});

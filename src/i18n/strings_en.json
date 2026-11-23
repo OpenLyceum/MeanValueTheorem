@@ -1,21 +1,58 @@
 {
-  "title": "SceneryStack Template",
+  "title": "Mean Value Theorem",
   "screens": {
-    "sim": "Sim"
+    "drive": "Drive",
+    "whenItApplies": "When It Applies"
   },
   "a11y": {
-    "screenSummary": {
-      "playArea": "The play area shows the main simulation content.",
-      "controlArea": "The control area has a Reset All button that returns the simulation to its starting state.",
-      "interactionHint": "Explore the simulation by interacting with its controls."
+    "drive": {
+      "screenSummary": {
+        "playArea": "A road and a position-time graph with a checkpoint secant and a moving tangent.",
+        "controlArea": "Use playback, drag on the graph, or use the time slider’s arrow keys.",
+        "interactionHint": "Drive between the checkpoints. Find when the tangent and secant have the same slope."
+      }
     },
-    "currentDetails": "The simulation is in its initial state.",
-    "controls": {
-      "exampleControl": "Example control"
+    "whenItApplies": {
+      "screenSummary": {
+        "playArea": "Position-time graphs of a smooth drive and one with a corner.",
+        "controlArea": "Use playback, drag on the graph, or use the time slider’s arrow keys.",
+        "interactionHint": "Compare a smooth trip with one whose speed changes abruptly at 5 s."
+      }
     }
   },
   "preferences": {
-    "title": "Simulation",
-    "exampleToggle": "Example Toggle"
+    "title": "Simulation"
+  },
+  "lesson": {
+    "route": "Change route",
+    "accelerating": "Steady acceleration",
+    "changing": "Speed-up and slow-down",
+    "constant": "Constant speed",
+    "corner": "Abrupt speed change",
+    "time": "Time (s)",
+    "position": "Position (m)",
+    "speed": "Instantaneous speed",
+    "average": "Average speed",
+    "undefined": "Undefined at the corner",
+    "oneSided": "Left speed 5 m/s · Right speed 15 m/s",
+    "play": "Play",
+    "pause": "Pause",
+    "step": "Step",
+    "mark": "Mark and check",
+    "reveal": "Reveal matches",
+    "hide": "Hide matches",
+    "close": "Within 0.1 m/s at the marked time.",
+    "retry": "Try another interior time.",
+    "all": "Every interior time is a match.",
+    "none": "There is no matching time.",
+    "matches": "Matching times",
+    "secant": "Checkpoint secant",
+    "tangent": "Tangent at the selected time",
+    "conditions": "Continuous on [0, 10] and differentiable on (0, 10).",
+    "which": "Which condition fails at the corner?",
+    "continuity": "Continuity",
+    "differentiability": "Differentiability",
+    "continuousAnswer": "Look at position near 5 s. The two sides meet.",
+    "differentAnswer": "The graph is continuous. The one-sided slopes differ at 5 s."
   }
 }

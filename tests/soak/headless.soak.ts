@@ -12,15 +12,15 @@
 
 import { StringProperty } from "scenerystack/axon";
 import { Tandem } from "scenerystack/tandem";
-// seed:soak-imports:start
-import SimColors from "../../src/SimColors.js";
-import { SimScreen } from "../../src/sim-screen/SimScreen.js";
-// seed:soak-imports:end
+import { DriveScreen } from "../../src/drive/DriveScreen.js";
+import MeanValueTheoremColors from "../../src/MeanValueTheoremColors.js";
+import { WhenItAppliesScreen } from "../../src/when-it-applies/WhenItAppliesScreen.js";
 import { describeHeadlessSoak } from "../helpers/headlessSoak.js";
 
 describeHeadlessSoak({
-  // seed:soak-screens:start
-  screens: () => [new SimScreen({ name: new StringProperty("Sim"), tandem: Tandem.OPT_OUT })],
-  tracked: () => ({ SimColors }),
-  // seed:soak-screens:end
+  screens: () => [
+    new DriveScreen({ name: new StringProperty("Drive"), tandem: Tandem.OPT_OUT }),
+    new WhenItAppliesScreen({ name: new StringProperty("When It Applies"), tandem: Tandem.OPT_OUT }),
+  ],
+  tracked: () => ({ MeanValueTheoremColors }),
 });
