@@ -52,7 +52,7 @@
     "which": "¿Qué condición falla en la esquina?",
     "continuity": "Continuidad",
     "differentiability": "Derivabilidad",
-    "continuousAnswer": "Observa la posición cerca de 5 s. Los dos lados se unen.",
-    "differentAnswer": "La gráfica es continua. Las pendientes laterales difieren a los 5 s."
+    "continuousAnswer": "En la ruta con un quiebre, ambos lados de la gráfica de posición se unen a los 5 s.",
+    "differentAnswer": "En la ruta con un quiebre, la posición es continua. Las pendientes laterales difieren a los 5 s."
   }
 }

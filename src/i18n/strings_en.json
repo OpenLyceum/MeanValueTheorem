@@ -52,7 +52,7 @@
     "which": "Which condition fails at the corner?",
     "continuity": "Continuity",
     "differentiability": "Differentiability",
-    "continuousAnswer": "Look at position near 5 s. The two sides meet.",
-    "differentAnswer": "The graph is continuous. The one-sided slopes differ at 5 s."
+    "continuousAnswer": "On the corner route, both sides of the position graph meet at 5 s.",
+    "differentAnswer": "On the corner route, position is continuous. The one-sided slopes differ at 5 s."
   }
 }
