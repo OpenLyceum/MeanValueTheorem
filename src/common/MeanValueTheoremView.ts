@@ -1,6 +1,7 @@
 import { Multilink } from "scenerystack/axon";
 import { localeProperty } from "scenerystack/joist";
-import { Circle, Line, Node, Rectangle } from "scenerystack/scenery";
+import { Shape } from "scenerystack/kite";
+import { Circle, DragListener, Line, Node, Rectangle } from "scenerystack/scenery";
 import { StringManager } from "../i18n/StringManager.js";
 import Colors from "../MeanValueTheoremColors.js";
 import { button, column, computed, format, LessonView, row, slider, text } from "./LessonView.js";
@@ -14,6 +15,21 @@ import {
   tripDuration,
   tripLength,
 } from "./model/MeanValueTheoremModel.js";
+
+/** Inverts a monotone route: the time, to the nearest 0.05 s, when the car reaches `distance`. */
+function timeAt(route: Parameters<typeof position>[0], distance: number): number {
+  let low = 0;
+  let high = tripDuration;
+  for (let i = 0; i < 40; i++) {
+    const middle = (low + high) / 2;
+    if (position(route, middle) < distance) {
+      low = middle;
+    } else {
+      high = middle;
+    }
+  }
+  return Math.round(20 * high) / 20;
+}
 
 export class MeanValueTheoremView extends LessonView {
   public constructor(model: MeanValueTheoremModel) {
@@ -151,8 +167,19 @@ export class MeanValueTheoremView extends LessonView {
       model.timer.isPlayingProperty.value = false;
       time.value = Math.max(0, Math.min(tripDuration, Math.round(20 * x) / 20));
     });
+    this.timeHandle = this.plot.handle({
+      cursor: "ew-resize",
+      start: () => {
+        model.timer.isPlayingProperty.value = false;
+      },
+      drag: (x) => {
+        time.value = Math.max(0, Math.min(tripDuration, Math.round(20 * this.plot.modelX(x)) / 20));
+      },
+    });
     Multilink.multilink([localeProperty, ...dependencies], () => this.draw(model));
   }
+
+  private readonly timeHandle: ReturnType<LessonView["plot"]["handle"]>;
 
   private makeRoad(
     model: MeanValueTheoremModel,
@@ -177,6 +204,23 @@ export class MeanValueTheoremView extends LessonView {
       ],
     });
     road.addChild(vehicle);
+    // Pointer-only: the time slider owns the keyboard path for the same quantity.
+    vehicle.cursor = "ew-resize";
+    vehicle.touchArea = Shape.rect(-22, -20, 44, 44);
+    vehicle.mouseArea = Shape.rect(-14, -13, 28, 28);
+    let grabOffset = 0;
+    const roadX = (point: Parameters<Node["globalToLocalPoint"]>[0]) => road.globalToLocalPoint(point).x;
+    const vehicleListener = new DragListener({
+      start: (event) => {
+        model.timer.isPlayingProperty.value = false;
+        grabOffset = vehicle.x - roadX(event.pointer.point);
+      },
+      drag: (event) => {
+        const distance = ((roadX(event.pointer.point) + grabOffset - 12) * tripLength) / (width - 10);
+        model.timer.timeProperty.value = timeAt(model.route.value, distance);
+      },
+    });
+    vehicle.addInputListener(vehicleListener);
     Multilink.multilink([model.route, model.timer.timeProperty], (route, time) => {
       vehicle.x = 12 + ((width - 10) * position(route, time)) / tripLength;
     });
@@ -263,5 +307,6 @@ export class MeanValueTheoremView extends LessonView {
       plot.point(mark, position(route, mark), Colors.secondaryColorProperty, true, 7);
     }
     plot.point(t, s, Colors.accentColorProperty, false, 4);
+    this.timeHandle.place(plot.plotX(t), plot.plotY(s));
   }
 }
