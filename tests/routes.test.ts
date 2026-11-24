@@ -1,98 +1,122 @@
 import { describe, expect, it } from "vitest";
 import {
-  averageSpeed,
+  functions,
+  graphFor,
+  hypothesisOn,
   MeanValueTheoremModel,
   matches,
-  position,
-  smoothRoutes,
-  speed,
+  routes,
+  secantSlope,
 } from "../src/common/model/MeanValueTheoremModel.js";
 
-describe("route models", () => {
-  it("matches average speed at one, two, or all interior times", () => {
-    const [accelerating, changing, constant] = smoothRoutes;
-    expect(matches(accelerating)).toEqual([5]);
-    expect(matches(changing)).toEqual([2.5, 7.5]);
-    expect(matches(constant)).toBe("all");
-    for (const route of smoothRoutes) {
-      expect(position(route, 0)).toBe(0);
-      expect(position(route, 10)).toBeCloseTo(100);
-      const times = matches(route);
-      for (const time of times === "all" ? [1, 5, 9] : times) {
-        expect(speed(route, time)).toBeCloseTo(averageSpeed);
+describe("graphs", () => {
+  it("pairs every f with its derivative away from the breaks", () => {
+    for (const id of [...routes, ...functions]) {
+      const graph = graphFor(id);
+      const [low, high] = graph.domain;
+      for (let i = 1; i < 20; i++) {
+        const x = low + ((high - low) * i) / 20;
+        const h = 1e-6;
+        const left = graph.f(x - h);
+        const right = graph.f(x + h);
+        const slope = graph.df(x);
+        const nearBreak = graph.breaks.some((point) => Math.abs(point.x - x) < 1e-3);
+        if (left === null || right === null || slope === null || nearBreak) {
+          continue;
+        }
+        expect(slope).toBeCloseTo((right - left) / (2 * h), 4);
       }
     }
   });
+});
 
-  it("leaves the tangent undefined at the continuous corner", () => {
-    expect(position("corner", 5)).toBe(25);
-    expect(speed("corner", 4)).toBe(5);
-    expect(speed("corner", 5)).toBeNull();
-    expect(speed("corner", 6)).toBe(15);
-    expect(matches("corner")).toEqual([]);
+describe("mean value theorem", () => {
+  it("finds every c where the tangent is parallel to the secant", () => {
+    // x³ − 3x on [−2, 2]: the secant slope is 1, and 3c² − 3 = 1 at c = ±2/√3.
+    const cubic = graphFor("cubic");
+    expect(secantSlope(cubic, -2, 2)).toBeCloseTo(1, 12);
+    const found = matches(cubic, -2, 2);
+    expect(found).not.toBe("all");
+    const expected = [-2 / Math.sqrt(3), 2 / Math.sqrt(3)];
+    expect(found).toHaveLength(2);
+    for (const [i, c] of (found as readonly number[]).entries()) {
+      expect(c).toBeCloseTo(expected[i] ?? 0, 6);
+    }
+    // Rolle: sin x on [0, π] has a flat secant and c = π/2.
+    const sine = matches(graphFor("sine"), 0, Math.PI) as readonly number[];
+    expect(sine).toHaveLength(1);
+    expect(sine[0]).toBeCloseTo(Math.PI / 2, 6);
+    // Constant speed matches everywhere; the accelerating car only at the midpoint of [a, b].
+    expect(matches(graphFor("constant"), 0, 10)).toBe("all");
+    expect((matches(graphFor("accelerating"), 2, 8) as readonly number[])[0]).toBeCloseTo(5, 6);
   });
 
-  it("checks only interior predictions and stops at the second checkpoint", () => {
+  it("names the failing hypothesis and finds no c when it fails", () => {
+    expect(hypothesisOn(graphFor("cubic"), -2, 2)).toBe("applies");
+    // √x has an infinite slope only at the endpoint 0, which the theorem allows.
+    expect(hypothesisOn(graphFor("root"), 0, 4)).toBe("applies");
+    expect(matches(graphFor("root"), 0, 4)).toHaveLength(1);
+    for (const [id, a, b, failing] of [
+      ["corner", -1, 2, "differentiability"],
+      ["cusp", -1, 8, "differentiability"],
+      ["jump", 0, 2, "continuity"],
+      ["pole", -1, 1, "continuity"],
+    ] as const) {
+      expect(hypothesisOn(graphFor(id), a, b)).toBe(failing);
+      expect(matches(graphFor(id), a, b)).toEqual([]);
+    }
+    // Moving the interval off the break restores the theorem.
+    expect(hypothesisOn(graphFor("corner"), 0.5, 2)).toBe("applies");
+    // A jump at the right end still breaks continuity on the closed interval.
+    expect(hypothesisOn(graphFor("jump"), 0, 1)).toBe("continuity");
+  });
+});
+
+describe("model", () => {
+  it("moves the checkpoints, keeps them apart, and judges a marked time", () => {
     const model = new MeanValueTheoremModel("drive");
-    model.prediction.value = 5.05;
-    expect(model.checkPrediction()).toBe(true);
-    model.prediction.value = 5.1;
-    expect(model.checkPrediction()).toBe(false);
-    model.changeRoute("constant");
-    model.prediction.value = 10;
-    expect(model.checkPrediction()).toBe(false);
-    model.timer.isPlayingProperty.value = true;
-    model.step(11);
-    expect(model.timer.timeProperty.value).toBe(10);
-    expect(model.timer.isPlayingProperty.value).toBe(false);
+    model.moveBound(0, 2.02);
+    model.moveBound(1, 8);
+    expect(model.interval.value).toEqual([2, 8]);
+    model.moveBound(0, 9);
+    expect(model.interval.value).toEqual([7.5, 8]);
+    model.moveBound(0, 2);
+    model.prediction.value = 5;
+    expect(model.predictionResult()).toBe("close");
+    model.prediction.value = 1;
+    expect(model.predictionResult()).toBe("retry");
     model.dispose();
   });
 
-  it("keeps a custom route monotone and finds every matching time", () => {
+  it("lets the custom route turn back so a Rolle case can be built", () => {
     const model = new MeanValueTheoremModel("drive");
-    model.changeRoute("custom");
+    model.graph.value = "custom";
     model.moveKnot(2, 90);
-    model.moveKnot(1, 95);
-    // Positions stay in order, so the car never reverses.
-    expect(model.knots.value).toEqual([0, 80, 80, 80, 100]);
-    for (let t = 0; t < 10; t += 0.01) {
-      expect(speed("custom", t, model.knots.value) ?? -1).toBeGreaterThanOrEqual(-1e-9);
-    }
-    const times = matches("custom", model.knots.value);
-    expect(times).not.toBe("all");
-    expect((times as number[]).length).toBeGreaterThan(0);
-    for (const time of times as number[]) {
-      expect(speed("custom", time, model.knots.value)).toBeCloseTo(averageSpeed, 6);
-    }
-    model.changeRoute("accelerating");
-    expect(model.knots.value[2]).toBe(80);
+    model.moveKnot(3, 20);
+    expect(model.knots.value).toEqual([0, 15, 90, 20, 100]);
     model.dispose();
   });
 
-  it("treats a straight custom route as matching everywhere", () => {
-    expect(matches("custom", [0, 25, 50, 75, 100])).toBe("all");
+  it("asks a fresh question when the function or the interval changes", () => {
+    const model = new MeanValueTheoremModel("when-it-applies");
+    model.hypothesis.value = "continuity";
+    model.graph.value = "corner";
+    expect(model.hypothesis.value).toBeNull();
+    expect(model.interval.value).toEqual([-1, 2]);
+    expect(model.failing).toBe("differentiability");
+    model.hypothesis.value = "applies";
+    model.moveBound(0, 0.5);
+    expect(model.hypothesis.value).toBeNull();
+    expect(model.failing).toBe("applies");
+    model.dispose();
   });
 
-  it("generates challenge routes whose matches can be marked on the 0.05 s grid", () => {
+  it("sets up a challenge on a curved custom route", () => {
     const model = new MeanValueTheoremModel("drive");
-    for (let i = 0; i < 20; i++) {
-      model.newChallenge();
-      expect(model.challenge.value).toBe(true);
-      expect(model.route.value).toBe("custom");
-      const times = matches("custom", model.knots.value);
-      expect(times).not.toBe("all");
-      const first = (times as number[])[0] ?? 0;
-      model.prediction.value = Math.round(first * 20) / 20;
-      expect(model.checkPrediction()).toBe(true);
-      // Some interior grid time must miss, or the check would accept anything.
-      const misses = Array.from({ length: 199 }, (_, k) => (k + 1) / 20).filter((time) => {
-        model.prediction.value = time;
-        return model.checkPrediction() === false;
-      });
-      expect(misses.length).toBeGreaterThan(100);
-    }
-    model.changeRoute("accelerating");
-    expect(model.challenge.value).toBe(false);
+    model.newChallenge();
+    expect(model.graph.value).toBe("custom");
+    expect(model.challenge.value).toBe(true);
+    expect(model.solutions).not.toBe("all");
     model.dispose();
   });
 });

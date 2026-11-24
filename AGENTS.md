@@ -4,25 +4,28 @@ Sim-specific context for AI assistants. General SceneryStack guidance: [OpenLyce
 
 ## Project
 
-Mean Value Theorem (`mean-value-theorem`) is a SceneryStack simulation scaffolded from SceneryStackTemplate.
+Mean Value Theorem (`mean-value-theorem`) connects the secant over [a, b] with tangents inside it.
+
+- **Drive:** a car's position against time, chosen from the route list: steady acceleration, speed-up and slow-down, constant speed, or the student's route.
+  - Drag the checkpoints a and b. They take the arrow keys.
+  - The time slider, Play/Step or the car on its road set the moment.
+  - A speed graph under the position graph draws the average speed as a level line over [a, b]; every c is where the speed curve meets it.
+  - "Mark and check" judges a marked time, and "New challenge" builds a curved route.
+  - The student's route may turn back, so a Rolle case (s(a) = s(b)) can be built.
+- **When It Applies:** functions with a draggable [a, b].
+  - Both hypotheses hold for x³ − 3x (two c values), sin x on [0, π] (Rolle) and √x (infinite slope only at the endpoint).
+  - The rest each break one hypothesis: |x| (corner), x^(2/3) (cusp), a jump, and 1/x (pole).
+  - The student answers which hypothesis fails: Neither, Continuity or Differentiability. The answer is judged against `hypothesisOn(graph, a, b)`, so moving a or b across a break changes it.
 
 ## Key files
 
 | File | Purpose |
 |---|---|
-| `src/MeanValueTheoremColors.ts` | All `ProfileColorProperty` instances |
-| `src/MeanValueTheoremConstants.ts` | Named numeric constants |
-| `src/MeanValueTheoremNamespace.ts` | Namespace for color property names |
-| `src/i18n/StringManager.ts` | Singleton localized string accessor |
-| `src/common/MeanValueTheoremPanel.ts` | Pre-themed `Panel` wrapper |
-| `src/common/MeanValueTheoremButtonOptions.ts` | Flat button / combo-box option bundles |
-| `src/common/TimeModel.ts` | Play/pause, speed, and elapsed time composed by screen models |
-| `src/drive/DriveScreen.ts` | Screen wrapper |
-| `src/drive/model/DriveModel.ts` | Simulation state and logic |
-| `src/drive/view/DriveScreenView.ts` | Visual nodes, layout, a11y wiring |
-| `src/when-it-applies/WhenItAppliesScreen.ts` | Screen wrapper |
-| `src/when-it-applies/model/WhenItAppliesModel.ts` | Simulation state and logic |
-| `src/when-it-applies/view/WhenItAppliesScreenView.ts` | Visual nodes, layout, a11y wiring |
+| `src/common/model/MeanValueTheoremModel.ts` | `Graph` library (f, f′, window, default [a, b], breaks), `secantSlope`, `hypothesisOn`, `matches` (every c, by sign changes of f′ − slope), the custom Hermite route, model state |
+| `src/common/MeanValueTheoremView.ts` | Both screens: combo box, readouts, hypothesis buttons, main and f′ plots, road and car, handles |
+| `src/common/LessonView.ts` | Canonical Calculus I scaffold, kept identical with Limit Explorer, Riemann Sum Builder and Related Rates apart from the sim prefix. Its `Plot` takes a size, so this sim adds the f′ graph as a second `Plot`. |
+| `tests/routes.test.ts` | f′ against f, c values (two-root cubic, Rolle, constant), failing hypotheses, checkpoints, the custom route, the challenge |
+| `tests/browser/*.spec.ts` | Car keyboard path, preferences focus, hypothesis feedback following the interval |
 
 ## Compliance carve-outs
 

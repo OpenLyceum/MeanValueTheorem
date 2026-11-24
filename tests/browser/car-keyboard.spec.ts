@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-for (const screen of [1, 2]) {
+for (const screen of [1]) {
   test(`the car is directly keyboard-draggable on screen ${screen}`, async ({ page }) => {
     await page.goto(`/?ea&screens=${screen}`);
-    const car = page.getByRole("application", { name: "Car on the road", exact: true });
+    const car = page.getByText("Car on the road", { exact: true });
     const time = page.getByRole("slider", { name: "Time (s)", exact: true });
     await car.focus();
     await page.keyboard.press("Shift+Tab");

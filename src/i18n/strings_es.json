@@ -7,16 +7,16 @@
   "a11y": {
     "drive": {
       "screenSummary": {
-        "playArea": "Carretera y gráfica posición-tiempo con una secante y una tangente móvil.",
-        "controlArea": "Usa la reproducción, arrastra en la gráfica o ajusta el tiempo con las flechas.",
-        "interactionHint": "Conduce entre los puestos de control. ¿Cuándo tienen igual pendiente la tangente y la secante?"
+        "playArea": "Una gráfica posición-tiempo con los puntos de control a y b, su secante y una tangente móvil, una gráfica de rapidez debajo y el coche en su carretera.",
+        "controlArea": "Elige una ruta, arrastra los puntos de control, reproduce o arrastra el tiempo, marca un instante o revela todas las soluciones.",
+        "interactionHint": "Encuentra un instante entre los puntos de control en que la rapidez iguala la rapidez media."
       }
     },
     "whenItApplies": {
       "screenSummary": {
-        "playArea": "Gráficas posición-tiempo de un viaje suave y otro con una esquina.",
-        "controlArea": "Usa la reproducción, arrastra en la gráfica o ajusta el tiempo con las flechas.",
-        "interactionHint": "Compara un viaje suave con otro cuya velocidad cambia bruscamente a los 5 s."
+        "playArea": "La gráfica de una función con los extremos a y b, su secante y una tangente, y la gráfica de f′ debajo.",
+        "controlArea": "Elige una función, arrastra a y b, mueve x y decide qué hipótesis falla.",
+        "interactionHint": "¿Cuándo puede fallar el teorema? Lleva a y b a ambos lados de una esquina, una cúspide, un salto o un polo."
       }
     }
   },
@@ -24,11 +24,11 @@
     "title": "Simulación"
   },
   "lesson": {
-    "route": "Cambiar ruta",
+    "route": "Ruta",
     "accelerating": "Aceleración constante",
     "changing": "Aumento y reducción de velocidad",
     "constant": "Velocidad constante",
-    "corner": "Cambio brusco de velocidad",
+    "corner": "una esquina",
     "carHandle": "Coche en la carretera",
     "moveCar": "Mover el coche",
     "moveCarHelp": "Usa Izquierda y Derecha o A y D para mover el coche. Mantén pulsada Mayús para dar pasos más pequeños.",
@@ -36,8 +36,7 @@
     "position": "Posición (m)",
     "speed": "Velocidad instantánea",
     "average": "Velocidad media",
-    "undefined": "Indefinida en la esquina",
-    "oneSided": "Velocidad izquierda 5 m/s · Velocidad derecha 15 m/s",
+    "undefined": "no definido",
     "play": "Reproducir",
     "pause": "Pausar",
     "step": "Avanzar",
@@ -46,21 +45,35 @@
     "hide": "Ocultar coincidencias",
     "close": "A menos de 0,1 m/s en el tiempo marcado.",
     "retry": "Prueba otro instante interior.",
-    "all": "Todos los instantes interiores coinciden.",
-    "none": "Ningún instante coincide.",
-    "matches": "Instantes que coinciden",
-    "secant": "Secante entre los puestos de control",
-    "tangent": "Tangente en el instante elegido",
-    "conditions": "Continua en [0, 10] y derivable en (0, 10).",
-    "which": "¿Qué condición falla en la esquina?",
+    "all": "Todo c en (a, b) funciona.",
+    "none": "Ningún c funciona en este intervalo.",
+    "matches": "Valores de c",
+    "secant": "Pendiente de la secante",
+    "tangent": "Pendiente de la tangente f′(x)",
+    "conditions": "El teorema exige f continua en [a, b] y derivable en (a, b).",
+    "which": "¿Qué hipótesis falla en [a, b]?",
     "continuity": "Continuidad",
     "differentiability": "Derivabilidad",
-    "continuousAnswer": "En la ruta con un quiebre, ambos lados de la gráfica de posición se unen a los 5 s.",
-    "differentAnswer": "En la ruta con un quiebre, la posición es continua. Las pendientes laterales difieren a los 5 s.",
     "custom": "Tu ruta: arrastra los puntos",
     "routePoint": "Punto de la ruta en el tiempo",
     "newChallenge": "Nuevo reto",
     "challengePrompt": "Marca un instante en que la rapidez sea igual a la rapidez media.",
-    "near": "Hay una coincidencia a menos de medio paso de la marca."
+    "near": "Hay una coincidencia a menos de medio paso de la marca.",
+    "function": "Función",
+    "x": "x",
+    "averageLine": "Secante entre puntos de control: rapidez media",
+    "tangentLine": "Tangente",
+    "speedAxis": "Rapidez (m/s)",
+    "applies": "Ninguna",
+    "appliesExplanation": "Ambas hipótesis se cumplen en [a, b], así que algún c en (a, b) debe tener f′(c) igual a la pendiente de la secante.",
+    "continuityExplanation": "f no es continua en x = {{x}}, dentro de [a, b].",
+    "differentiabilityExplanation": "f es continua, pero tiene {{kind}} en x = {{x}}, dentro de (a, b), donde f′ no existe.",
+    "cusp": "una cúspide",
+    "jump": "un salto",
+    "pole": "una asíntota vertical",
+    "right": "Correcto.",
+    "wrong": "No del todo.",
+    "boundA": "Punto de control a",
+    "boundB": "Punto de control b"
   }
 }

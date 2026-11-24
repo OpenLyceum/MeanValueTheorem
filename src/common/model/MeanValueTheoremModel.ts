@@ -1,16 +1,42 @@
-import { BooleanProperty, Property } from "scenerystack/axon";
-import { dotRandom, roundSymmetric } from "scenerystack/dot";
+import { BooleanProperty, NumberProperty, Property } from "scenerystack/axon";
+import { dotRandom, roundSymmetric, toFixedNumber } from "scenerystack/dot";
 import type { TModel } from "scenerystack/joist";
 import { TimeModel } from "../TimeModel.js";
 
 export const tripDuration = 10;
 export const tripLength = 100;
-export const averageSpeed = tripLength / tripDuration;
 const tolerance = 0.1;
 // The time controls move in 0.05 s steps; a mark this close to an exact match also counts.
 const halfStep = 0.025;
-export const smoothRoutes = ["accelerating", "changing", "constant", "custom"] as const;
-type Route = (typeof smoothRoutes)[number] | "corner";
+/** The checkpoints stay at least this far apart. */
+const minimumGap = 0.5;
+/** Dragged checkpoints snap to multiples of this. */
+const boundStep = 0.05;
+
+/** The car routes of the Drive screen, as position against time. */
+export const routes = ["accelerating", "changing", "constant", "custom"] as const;
+/** The functions of the When It Applies screen: two that satisfy the theorem's hypotheses, and failures. */
+export const functions = ["cubic", "sine", "root", "corner", "cusp", "jump", "pole"] as const;
+export type GraphId = (typeof routes)[number] | (typeof functions)[number];
+/** Which hypothesis of the theorem fails on [a, b], or none. */
+export type Hypothesis = "applies" | "continuity" | "differentiability";
+
+/** A point where f is not differentiable: a jump or pole breaks continuity too; a corner or cusp does not. */
+type Break = { readonly x: number; readonly kind: "jump" | "pole" | "corner" | "cusp" };
+
+/**
+ * One graph: f and f′ (null where undefined), the window it is drawn in, the interval [a, b]
+ * it starts on, and its breaks.
+ */
+export type Graph = {
+  readonly id: GraphId;
+  readonly label: string;
+  readonly f: (x: number) => number | null;
+  readonly df: (x: number) => number | null;
+  readonly domain: readonly [number, number];
+  readonly bounds: readonly [number, number];
+  readonly breaks: readonly Break[];
+};
 
 /** The custom route passes through one position at each of these times (the ends stay fixed). */
 export const knotTimes = [0, 2.5, 5, 7.5, 10] as const;
@@ -18,9 +44,9 @@ const knotSpacing = 2.5;
 const defaultKnots: readonly number[] = [0, 15, 35, 80, 100];
 
 /**
- * Tangents for a monotone cubic Hermite curve through the knots (Fritsch–Butland):
- * a harmonic mean of neighbouring slopes, or zero at a flat stretch, so the car
- * never backs up between knots and its speed stays continuous.
+ * Tangents for a cubic Hermite curve through the knots (Fritsch–Butland): a harmonic mean of
+ * neighbouring slopes, or zero at a turning knot, so the route never overshoots a knot and
+ * its speed stays continuous. The car may turn back, which makes Rolle's case possible.
  */
 function tangents(knots: readonly number[]): number[] {
   const slopes = knots.slice(1).map((y, i) => (y - (knots[i] ?? 0)) / knotSpacing);
@@ -44,8 +70,9 @@ function hermite(knots: readonly number[], time: number, derivative: boolean): n
     cachedTangents = tangents(knots);
   }
   const m = cachedTangents;
-  const i = Math.max(0, Math.min(knots.length - 2, Math.floor(time / knotSpacing)));
-  const t = time / knotSpacing - i;
+  const clamped = Math.max(0, Math.min(tripDuration, time));
+  const i = Math.max(0, Math.min(knots.length - 2, Math.floor(clamped / knotSpacing)));
+  const t = clamped / knotSpacing - i;
   const a = knots[i] ?? 0;
   const b = knots[i + 1] ?? 0;
   const ma = (m[i] ?? 0) * knotSpacing;
@@ -61,87 +88,181 @@ function hermite(knots: readonly number[], time: number, derivative: boolean): n
   );
 }
 
-export function position(route: Route, time: number, knots = defaultKnots): number {
-  const u = time / tripDuration;
-  switch (route) {
-    case "accelerating":
-      return tripLength * u * u;
-    case "changing":
-      return tripLength * (u + 0.1 * Math.sin(2 * Math.PI * u));
-    case "corner":
-      return time <= 5 ? 5 * time : 25 + 15 * (time - 5);
-    case "constant":
-      return averageSpeed * time;
-    case "custom":
-      return hermite(knots, Math.max(0, Math.min(tripDuration, time)), false);
+const trip = { domain: [0, tripDuration], bounds: [0, tripDuration], breaks: [] } as const;
+
+/** The library; the custom route is rebuilt from the knots by `graphFor`. */
+const library: Readonly<Record<Exclude<GraphId, "custom">, Graph>> = {
+  accelerating: {
+    id: "accelerating",
+    label: "s(t) = t<sup>2</sup>",
+    f: (t) => t * t,
+    df: (t) => 2 * t,
+    ...trip,
+  },
+  changing: {
+    id: "changing",
+    label: "s(t) = 10t + (50/π) sin(πt/5)",
+    f: (t) => 10 * t + (50 / Math.PI) * Math.sin((Math.PI * t) / 5),
+    df: (t) => 10 + 10 * Math.cos((Math.PI * t) / 5),
+    ...trip,
+  },
+  constant: { id: "constant", label: "s(t) = 10t", f: (t) => 10 * t, df: () => 10, ...trip },
+  cubic: {
+    id: "cubic",
+    label: "f(x) = x<sup>3</sup> − 3x",
+    f: (x) => x ** 3 - 3 * x,
+    df: (x) => 3 * x * x - 3,
+    domain: [-2.3, 2.3],
+    bounds: [-2, 2],
+    breaks: [],
+  },
+  sine: {
+    id: "sine",
+    label: "f(x) = sin x",
+    f: Math.sin,
+    df: Math.cos,
+    domain: [-0.4, 6.7],
+    bounds: [0, Math.PI],
+    breaks: [],
+  },
+  root: {
+    id: "root",
+    label: "f(x) = √x",
+    f: (x) => (x < 0 ? null : Math.sqrt(x)),
+    // The slope is infinite at 0; the theorem only needs differentiability inside (a, b).
+    df: (x) => (x <= 0 ? null : 0.5 / Math.sqrt(x)),
+    domain: [0, 4.5],
+    bounds: [0, 4],
+    breaks: [],
+  },
+  corner: {
+    id: "corner",
+    label: "f(x) = |x|",
+    f: Math.abs,
+    df: (x) => (x === 0 ? null : Math.sign(x)),
+    domain: [-1.6, 2.6],
+    bounds: [-1, 2],
+    breaks: [{ x: 0, kind: "corner" }],
+  },
+  cusp: {
+    id: "cusp",
+    label: "f(x) = x<sup>2/3</sup>",
+    f: (x) => Math.cbrt(x) ** 2,
+    df: (x) => (x === 0 ? null : 2 / (3 * Math.cbrt(x))),
+    domain: [-1.5, 8.5],
+    bounds: [-1, 8],
+    breaks: [{ x: 0, kind: "cusp" }],
+  },
+  jump: {
+    id: "jump",
+    label: "f(x) = x (x &lt; 1),  x + 1 (x ≥ 1)",
+    f: (x) => (x < 1 ? x : x + 1),
+    df: (x) => (x === 1 ? null : 1),
+    domain: [-0.3, 2.3],
+    bounds: [0, 2],
+    breaks: [{ x: 1, kind: "jump" }],
+  },
+  pole: {
+    id: "pole",
+    label: "f(x) = 1/x",
+    f: (x) => (x === 0 ? null : 1 / x),
+    df: (x) => (x === 0 ? null : -1 / (x * x)),
+    domain: [-1.6, 1.6],
+    bounds: [-1, 1],
+    breaks: [{ x: 0, kind: "pole" }],
+  },
+};
+
+export function graphFor(id: GraphId, knots: readonly number[] = defaultKnots): Graph {
+  if (id !== "custom") {
+    return library[id];
   }
+  return {
+    id,
+    label: "",
+    f: (t) => hermite(knots, t, false),
+    df: (t) => hermite(knots, t, true),
+    ...trip,
+  };
 }
 
-export function speed(route: Route, time: number, knots = defaultKnots): number | null {
-  switch (route) {
-    case "accelerating":
-      return 2 * time;
-    case "changing":
-      return averageSpeed + 2 * Math.PI * Math.cos((2 * Math.PI * time) / tripDuration);
-    case "corner":
-      return time === 5 ? null : time < 5 ? 5 : 15;
-    case "constant":
-      return averageSpeed;
-    case "custom":
-      return hermite(knots, Math.max(0, Math.min(tripDuration, time)), true);
-  }
+/** The slope of the secant over [a, b], or null when f is undefined at an end. */
+export function secantSlope(graph: Graph, a: number, b: number): number | null {
+  const fa = graph.f(a);
+  const fb = graph.f(b);
+  return fa === null || fb === null ? null : (fb - fa) / (b - a);
 }
 
-/** Interior times where the custom route's speed equals the average, found by sign changes. */
-function customMatches(knots: readonly number[]): "all" | readonly number[] {
-  const gap = (time: number) => hermite(knots, time, true) - averageSpeed;
+/** Which hypothesis fails on [a, b]: continuity on the closed interval, then differentiability inside it. */
+export function hypothesisOn(graph: Graph, a: number, b: number): Hypothesis {
+  const inside = (x: number, closed: boolean) => (closed ? a <= x && x <= b : a < x && x < b);
+  if (graph.breaks.some(({ x, kind }) => (kind === "jump" || kind === "pole") && inside(x, true))) {
+    return "continuity";
+  }
+  return graph.breaks.some(({ x }) => inside(x, false)) ? "differentiability" : "applies";
+}
+
+/**
+ * The points c in (a, b) where f′(c) equals the secant slope, by sign changes on a fine grid,
+ * skipping grid cells where f′ is undefined; "all" when f′ matches the slope everywhere.
+ */
+export function matches(graph: Graph, a: number, b: number): "all" | readonly number[] {
+  const slope = secantSlope(graph, a, b);
+  if (slope === null) {
+    return [];
+  }
+  const gap = (x: number) => {
+    const value = graph.df(x);
+    return value === null || !Number.isFinite(value) ? null : value - slope;
+  };
   const samples = 2000;
   const found: number[] = [];
   let flat = true;
   for (let i = 1; i < samples; i++) {
-    const a = (tripDuration * (i - 1)) / samples;
-    const b = (tripDuration * i) / samples;
-    flat &&= Math.abs(gap(b)) < 1e-9;
-    if (i > 1 && gap(a) === 0) {
-      found.push(a);
-    } else if (gap(a) * gap(b) < 0) {
-      let low = a;
-      let high = b;
+    const low = a + ((b - a) * (i - 1)) / samples;
+    const high = a + ((b - a) * i) / samples;
+    const gLow = gap(low);
+    const gHigh = gap(high);
+    const broken = graph.breaks.some(({ x }) => low <= x && x <= high);
+    if (gHigh === null || broken) {
+      flat = false;
+      continue;
+    }
+    flat &&= Math.abs(gHigh) < 1e-9;
+    if (gLow === null || i === 1) {
+      continue;
+    }
+    if (gLow === 0) {
+      found.push(low);
+    } else if (gLow * gHigh < 0) {
+      let left = low;
+      let right = high;
       for (let k = 0; k < 50; k++) {
-        const middle = (low + high) / 2;
-        if (gap(low) * gap(middle) <= 0) {
-          high = middle;
+        const middle = (left + right) / 2;
+        const gMiddle = gap(middle) ?? 0;
+        if ((gap(left) ?? 0) * gMiddle <= 0) {
+          right = middle;
         } else {
-          low = middle;
+          left = middle;
         }
       }
-      found.push((low + high) / 2);
+      found.push((left + right) / 2);
     }
   }
   return flat ? "all" : found;
 }
 
-export function matches(route: Route, knots = defaultKnots): "all" | readonly number[] {
-  switch (route) {
-    case "accelerating":
-      return [5];
-    case "changing":
-      return [2.5, 7.5];
-    case "corner":
-      return [];
-    case "constant":
-      return "all";
-    case "custom":
-      return customMatches(knots);
-  }
-}
-
 export class MeanValueTheoremModel implements TModel {
   public readonly timer = new TimeModel();
-  public readonly route = new Property<Route>("accelerating");
+  public readonly graph: Property<GraphId>;
+  /** The checkpoints a < b. */
+  public readonly interval: Property<readonly [number, number]>;
+  /** Where the tangent is drawn: the time on Drive, x on When It Applies. */
+  public readonly point: NumberProperty;
   public readonly prediction = new Property<number | null>(null);
   public readonly reveal = new BooleanProperty(false);
-  public readonly hypothesis = new Property<"continuity" | "differentiability" | null>(null);
+  /** The student's answer to "which hypothesis fails?". */
+  public readonly hypothesis = new Property<Hypothesis | null>(null);
   public readonly knots = new Property<readonly number[]>(defaultKnots);
   public readonly challenge = new BooleanProperty(false);
 
@@ -149,16 +270,50 @@ export class MeanValueTheoremModel implements TModel {
 
   public constructor(mode: "drive" | "when-it-applies") {
     this.mode = mode;
+    const first = mode === "drive" ? "accelerating" : "cubic";
+    this.graph = new Property<GraphId>(first);
+    this.interval = new Property<readonly [number, number]>(graphFor(first).bounds);
+    this.point = mode === "drive" ? this.timer.timeProperty : new NumberProperty(0.5);
+    this.graph.lazyLink(() => {
+      this.interval.value = this.current.bounds;
+      this.prediction.reset();
+      this.reveal.reset();
+      this.hypothesis.reset();
+      this.timer.isPlayingProperty.value = false;
+      const [a, b] = this.interval.value;
+      // Off-centre, so the point does not start on a break in the middle of [a, b].
+      this.point.value = this.mode === "drive" ? 0 : roundSymmetric((a + 0.3 * (b - a)) * 20) / 20;
+    });
+    // A new interval asks a new question.
+    this.interval.lazyLink(() => {
+      this.prediction.reset();
+      this.hypothesis.reset();
+    });
     this.reset();
   }
 
-  public checkPrediction(): boolean | null {
-    const result = this.predictionResult();
-    return result === null ? null : result !== "retry";
+  public get current(): Graph {
+    return graphFor(this.graph.value, this.knots.value);
+  }
+
+  public get average(): number | null {
+    const [a, b] = this.interval.value;
+    return secantSlope(this.current, a, b);
+  }
+
+  /** The hypothesis that actually fails on the current interval. */
+  public get failing(): Hypothesis {
+    const [a, b] = this.interval.value;
+    return hypothesisOn(this.current, a, b);
+  }
+
+  public get solutions(): "all" | readonly number[] {
+    const [a, b] = this.interval.value;
+    return matches(this.current, a, b);
   }
 
   /**
-   * "close" when the speed is within the tolerance of the average at the mark; "near" when it
+   * "close" when f′ is within the tolerance of the secant slope at the mark; "near" when it
    * is not, but an exact match lies within half a time step (a steep custom route can jump past
    * the average between steps); otherwise "retry".
    */
@@ -167,28 +322,42 @@ export class MeanValueTheoremModel implements TModel {
     if (t === null) {
       return null;
     }
-    const value = speed(this.route.value, t, this.knots.value);
-    if (t <= 0 || t >= tripDuration || value === null) {
+    const [a, b] = this.interval.value;
+    const value = this.current.df(t);
+    const average = this.average;
+    if (t <= a || t >= b || value === null || average === null) {
       return "retry";
     }
-    if (Math.abs(value - averageSpeed) <= tolerance + 1e-10) {
+    if (Math.abs(value - average) <= tolerance + 1e-10) {
       return "close";
     }
-    const exact = matches(this.route.value, this.knots.value);
+    const exact = this.solutions;
     return exact !== "all" && exact.some((time) => Math.abs(time - t) <= halfStep + 1e-9) ? "near" : "retry";
   }
 
-  /** Moves an interior point of the custom route, keeping positions in order so the car never reverses. */
+  /** Moves an interior point of the custom route, kept on the road. */
   public moveKnot(index: number, value: number): void {
     const knots = this.knots.value;
     if (index < 1 || index > knots.length - 2) {
       return;
     }
-    const low = knots[index - 1] ?? 0;
-    const high = knots[index + 1] ?? tripLength;
-    const next = Math.max(low, Math.min(high, roundSymmetric(value)));
+    const next = Math.max(0, Math.min(tripLength, roundSymmetric(value)));
     if (next !== knots[index]) {
       this.knots.value = knots.map((knot, i) => (i === index ? next : knot));
+    }
+  }
+
+  /** Moves checkpoint a (side 0) or b (side 1), snapped and kept in the window and apart. */
+  public moveBound(side: 0 | 1, x: number): void {
+    const [low, high] = this.current.domain;
+    const [a, b] = this.interval.value;
+    const snapped = roundSymmetric(x / boundStep) * boundStep;
+    const next: [number, number] =
+      side === 0
+        ? [Math.max(low, Math.min(b - minimumGap, snapped)), b]
+        : [a, Math.min(high, Math.max(a + minimumGap, snapped))];
+    if (next[0] !== a || next[1] !== b) {
+      this.interval.value = [toFixedNumber(next[0], 2), toFixedNumber(next[1], 2)];
     }
   }
 
@@ -199,20 +368,11 @@ export class MeanValueTheoremModel implements TModel {
       const inner = [0, 0, 0].map(() => 5 * dotRandom.nextIntBetween(1, 19)).sort((a, b) => a - b);
       knots = [0, ...inner, tripLength];
     } while (Math.max(...knots.map((knot, i) => Math.abs(knot - 25 * i))) < 15);
-    this.changeRoute("custom");
+    this.graph.value = "custom";
     this.knots.value = knots;
+    this.interval.value = [0, tripDuration];
+    this.prediction.reset();
     this.challenge.value = true;
-  }
-
-  public changeRoute(route: Route): void {
-    // The student's custom route survives a trip through the other routes.
-    const knots = this.knots.value;
-    this.reset();
-    this.knots.value = knots;
-    this.route.value = route;
-    if (this.mode === "when-it-applies") {
-      this.timer.timeProperty.value = 5;
-    }
   }
 
   public stepOnce(dt: number): void {
@@ -224,28 +384,32 @@ export class MeanValueTheoremModel implements TModel {
   }
 
   public step(dt: number): void {
-    if (this.timer.isPlayingProperty.value) {
+    if (this.mode === "drive" && this.timer.isPlayingProperty.value) {
       this.stepOnce(dt);
     }
   }
 
   public reset(): void {
     this.timer.reset();
-    this.route.reset();
+    this.graph.reset();
+    this.interval.value = this.current.bounds;
+    if (this.mode !== "drive") {
+      this.point.value = 0.5;
+    }
     this.prediction.reset();
     this.reveal.reset();
     this.hypothesis.reset();
     this.knots.reset();
     this.challenge.reset();
-    if (this.mode === "when-it-applies") {
-      this.route.value = "corner";
-      this.timer.timeProperty.value = 5;
-    }
   }
 
   public dispose(): void {
     this.timer.dispose();
-    this.route.dispose();
+    this.graph.dispose();
+    this.interval.dispose();
+    if (this.point !== this.timer.timeProperty) {
+      this.point.dispose();
+    }
     this.prediction.dispose();
     this.reveal.dispose();
     this.hypothesis.dispose();

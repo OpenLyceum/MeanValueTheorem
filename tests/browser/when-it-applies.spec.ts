@@ -1,15 +1,25 @@
 import { expect, test } from "@playwright/test";
 
-test("hypothesis feedback identifies the corner route while the smooth route is selected", async ({ page }) => {
+test("the failing hypothesis follows the function and the interval", async ({ page }) => {
   await page.goto("/?screens=2&ea");
-  await page.getByRole("button", { name: "Change route" }).press("Enter");
-  const details = page.getByRole("paragraph").filter({ hasText: /^Steady acceleration\./ });
-
-  await page.getByRole("button", { name: "Differentiability" }).press("Enter");
-  await expect(details).toContainText(
-    "On the corner route, position is continuous. The one-sided slopes differ at 5 s.",
-  );
-
+  // x³ − 3x on [−2, 2] satisfies both hypotheses.
+  await page.getByRole("button", { name: "Neither", exact: true }).press("Enter");
+  await expect(page.getByText(/Right\. Both hypotheses hold on \[a, b\]/)).toBeAttached();
   await page.getByRole("button", { name: "Continuity", exact: true }).press("Enter");
-  await expect(details).toContainText("On the corner route, both sides of the position graph meet at 5 s.");
+  await expect(page.getByText(/Not quite\. Both hypotheses hold/)).toBeAttached();
+});
+
+test("moving an endpoint across a corner changes the answer", async ({ page }) => {
+  await page.goto("/?screens=2&ea");
+  const functionBox = page.getByRole("button", { name: /^Function/ });
+  await functionBox.press("Enter");
+  await page.getByRole("option", { name: "f(x) = |x|" }).press("Enter");
+  await page.getByRole("button", { name: "Differentiability", exact: true }).press("Enter");
+  await expect(page.getByText(/Right\. f is continuous, but it has a corner at x = 0/)).toBeAttached();
+  const a = page.getByText("Checkpoint a", { exact: true });
+  for (let i = 0; i < 12; i++) {
+    await a.press("ArrowRight");
+  }
+  await page.getByRole("button", { name: "Neither", exact: true }).press("Enter");
+  await expect(page.getByText(/Right\. Both hypotheses hold/)).toBeAttached();
 });

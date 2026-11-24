@@ -7,16 +7,16 @@
   "a11y": {
     "drive": {
       "screenSummary": {
-        "playArea": "A road and a position-time graph with a checkpoint secant and a moving tangent.",
-        "controlArea": "Use playback, drag on the graph, or use the time slider’s arrow keys.",
-        "interactionHint": "Drive between the checkpoints. Find when the tangent and secant have the same slope."
+        "playArea": "A position-time graph with checkpoints a and b, their secant and a moving tangent, a speed graph below it, and the car on its road.",
+        "controlArea": "Choose a route, drag the checkpoints, play or drag the time, mark a time, or reveal every match.",
+        "interactionHint": "Find a time between the checkpoints when the car's speed equals its average speed."
       }
     },
     "whenItApplies": {
       "screenSummary": {
-        "playArea": "Position-time graphs of a smooth drive and one with a corner.",
-        "controlArea": "Use playback, drag on the graph, or use the time slider’s arrow keys.",
-        "interactionHint": "Compare a smooth trip with one whose speed changes abruptly at 5 s."
+        "playArea": "A function graph with endpoints a and b, their secant and a tangent, and the graph of f′ below it.",
+        "controlArea": "Choose a function, drag a and b, move x, and decide which hypothesis fails.",
+        "interactionHint": "When can the theorem fail? Move a and b across a corner, a cusp, a jump or a pole."
       }
     }
   },
@@ -24,11 +24,11 @@
     "title": "Simulation"
   },
   "lesson": {
-    "route": "Change route",
+    "route": "Route",
     "accelerating": "Steady acceleration",
     "changing": "Speed-up and slow-down",
     "constant": "Constant speed",
-    "corner": "Abrupt speed change",
+    "corner": "a corner",
     "carHandle": "Car on the road",
     "moveCar": "Move the car",
     "moveCarHelp": "Use Left and Right or A and D to move the car. Hold Shift for smaller steps.",
@@ -36,8 +36,7 @@
     "position": "Position (m)",
     "speed": "Instantaneous speed",
     "average": "Average speed",
-    "undefined": "Undefined at the corner",
-    "oneSided": "Left speed 5 m/s · Right speed 15 m/s",
+    "undefined": "undefined",
     "play": "Play",
     "pause": "Pause",
     "step": "Step",
@@ -46,21 +45,35 @@
     "hide": "Hide matches",
     "close": "Within 0.1 m/s at the marked time.",
     "retry": "Try another interior time.",
-    "all": "Every interior time is a match.",
-    "none": "There is no matching time.",
-    "matches": "Matching times",
-    "secant": "Checkpoint secant",
-    "tangent": "Tangent at the selected time",
-    "conditions": "Continuous on [0, 10] and differentiable on (0, 10).",
-    "which": "Which condition fails at the corner?",
+    "all": "Every c in (a, b) works.",
+    "none": "No c works on this interval.",
+    "matches": "Values of c",
+    "secant": "Secant slope",
+    "tangent": "Tangent slope f′(x)",
+    "conditions": "The theorem needs f continuous on [a, b] and differentiable on (a, b).",
+    "which": "Which hypothesis fails on [a, b]?",
     "continuity": "Continuity",
     "differentiability": "Differentiability",
-    "continuousAnswer": "On the corner route, both sides of the position graph meet at 5 s.",
-    "differentAnswer": "On the corner route, position is continuous. The one-sided slopes differ at 5 s.",
     "custom": "Your route: drag the points",
     "routePoint": "Route point at time",
     "newChallenge": "New challenge",
     "challengePrompt": "Mark a time when the speed equals the average speed.",
-    "near": "A match lies within half a time step of the mark."
+    "near": "A match lies within half a time step of the mark.",
+    "function": "Function",
+    "x": "x",
+    "averageLine": "Checkpoint secant: average speed",
+    "tangentLine": "Tangent",
+    "speedAxis": "Speed (m/s)",
+    "applies": "Neither",
+    "appliesExplanation": "Both hypotheses hold on [a, b], so some c in (a, b) must have f′(c) equal to the secant slope.",
+    "continuityExplanation": "f is not continuous at x = {{x}}, inside [a, b].",
+    "differentiabilityExplanation": "f is continuous, but it has {{kind}} at x = {{x}}, inside (a, b), where f′ does not exist.",
+    "cusp": "a cusp",
+    "jump": "a jump",
+    "pole": "a vertical asymptote",
+    "right": "Right.",
+    "wrong": "Not quite.",
+    "boundA": "Checkpoint a",
+    "boundB": "Checkpoint b"
   }
 }

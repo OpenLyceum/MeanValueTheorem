@@ -7,16 +7,16 @@
   "a11y": {
     "drive": {
       "screenSummary": {
-        "playArea": "Route et graphe position-temps avec une sécante et une tangente mobile.",
-        "controlArea": "Utilisez la lecture, glissez sur le graphe ou réglez le temps avec les flèches.",
-        "interactionHint": "Parcourez le trajet. Quand la tangente et la sécante ont-elles la même pente ?"
+        "playArea": "Un graphe position-temps avec les points de contrôle a et b, leur sécante et une tangente mobile, un graphe de vitesse dessous et la voiture sur sa route.",
+        "controlArea": "Choisissez un trajet, faites glisser les points de contrôle, lancez ou faites glisser le temps, marquez un instant ou révélez toutes les solutions.",
+        "interactionHint": "Trouvez un instant entre les points de contrôle où la vitesse égale la vitesse moyenne."
       }
     },
     "whenItApplies": {
       "screenSummary": {
-        "playArea": "Graphes position-temps d’un trajet régulier et d’un trajet avec un point anguleux.",
-        "controlArea": "Utilisez la lecture, glissez sur le graphe ou réglez le temps avec les flèches.",
-        "interactionHint": "Comparez un trajet régulier à un trajet dont la vitesse change brusquement à 5 s."
+        "playArea": "Le graphe d’une fonction avec les bornes a et b, leur sécante et une tangente, et le graphe de f′ dessous.",
+        "controlArea": "Choisissez une fonction, faites glisser a et b, déplacez x et décidez quelle hypothèse échoue.",
+        "interactionHint": "Quand le théorème peut-il échouer ? Faites passer a et b de part et d’autre d’un point anguleux, d’un rebroussement, d’un saut ou d’un pôle."
       }
     }
   },
@@ -24,11 +24,11 @@
     "title": "Simulation"
   },
   "lesson": {
-    "route": "Changer de trajet",
+    "route": "Trajet",
     "accelerating": "Accélération constante",
     "changing": "Accélérations et ralentissements",
     "constant": "Vitesse constante",
-    "corner": "Changement brusque de vitesse",
+    "corner": "un point anguleux",
     "carHandle": "Voiture sur la route",
     "moveCar": "Déplacer la voiture",
     "moveCarHelp": "Utilisez Gauche et Droite ou A et D pour déplacer la voiture. Maintenez Maj pour avancer par petits pas.",
@@ -36,8 +36,7 @@
     "position": "Position (m)",
     "speed": "Vitesse instantanée",
     "average": "Vitesse moyenne",
-    "undefined": "Non définie au point anguleux",
-    "oneSided": "Vitesse à gauche 5 m/s · Vitesse à droite 15 m/s",
+    "undefined": "non défini",
     "play": "Lecture",
     "pause": "Pause",
     "step": "Avancer",
@@ -46,21 +45,35 @@
     "hide": "Masquer les solutions",
     "close": "À moins de 0,1 m/s au temps marqué.",
     "retry": "Essayez un autre instant intérieur.",
-    "all": "Tous les instants intérieurs conviennent.",
-    "none": "Aucun instant ne convient.",
-    "matches": "Instants solutions",
-    "secant": "Sécante entre les points de contrôle",
-    "tangent": "Tangente à l’instant choisi",
-    "conditions": "Continue sur [0, 10] et dérivable sur (0, 10).",
-    "which": "Quelle condition échoue au point anguleux ?",
+    "all": "Tout c de (a, b) convient.",
+    "none": "Aucun c ne convient sur cet intervalle.",
+    "matches": "Valeurs de c",
+    "secant": "Pente de la sécante",
+    "tangent": "Pente de la tangente f′(x)",
+    "conditions": "Le théorème exige f continue sur [a, b] et dérivable sur (a, b).",
+    "which": "Quelle hypothèse échoue sur [a, b] ?",
     "continuity": "Continuité",
     "differentiability": "Dérivabilité",
-    "continuousAnswer": "Sur le trajet avec un point anguleux, les deux côtés du graphe de position se rejoignent à 5 s.",
-    "differentAnswer": "Sur le trajet avec un point anguleux, la position est continue. Les pentes à gauche et à droite diffèrent à 5 s.",
     "custom": "Votre trajet : faites glisser les points",
     "routePoint": "Point du trajet au temps",
     "newChallenge": "Nouveau défi",
     "challengePrompt": "Marquez un instant où la vitesse égale la vitesse moyenne.",
-    "near": "Une correspondance se trouve à moins d’un demi-pas de la marque."
+    "near": "Une correspondance se trouve à moins d’un demi-pas de la marque.",
+    "function": "Fonction",
+    "x": "x",
+    "averageLine": "Sécante entre points de contrôle : vitesse moyenne",
+    "tangentLine": "Tangente",
+    "speedAxis": "Vitesse (m/s)",
+    "applies": "Aucune",
+    "appliesExplanation": "Les deux hypothèses sont vérifiées sur [a, b] : un c de (a, b) doit avoir f′(c) égal à la pente de la sécante.",
+    "continuityExplanation": "f n’est pas continue en x = {{x}}, dans [a, b].",
+    "differentiabilityExplanation": "f est continue, mais présente {{kind}} en x = {{x}}, dans (a, b), où f′ n’existe pas.",
+    "cusp": "un point de rebroussement",
+    "jump": "un saut",
+    "pole": "une asymptote verticale",
+    "right": "Exact.",
+    "wrong": "Pas tout à fait.",
+    "boundA": "Point de contrôle a",
+    "boundB": "Point de contrôle b"
   }
 }
