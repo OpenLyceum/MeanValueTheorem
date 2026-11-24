@@ -1,7 +1,8 @@
 import { Multilink } from "scenerystack/axon";
+import { roundSymmetric, Vector2 } from "scenerystack/dot";
 import { localeProperty } from "scenerystack/joist";
 import { Shape } from "scenerystack/kite";
-import { Circle, DragListener, Line, Node, Rectangle } from "scenerystack/scenery";
+import { Circle, DragListener, KeyboardDragListener, Line, Node, Rectangle } from "scenerystack/scenery";
 import { StringManager } from "../i18n/StringManager.js";
 import Colors from "../MeanValueTheoremColors.js";
 import { button, column, computed, format, LessonView, row, slider, text } from "./LessonView.js";
@@ -19,6 +20,7 @@ import {
 
 // Each arrow-key press moves a custom route point by this many metres (Shift: a quarter).
 const KNOT_KEY_STEP = 4;
+const CAR_KEYBOARD_STEP_METRES = 4;
 
 /** Inverts a monotone route: the time, to the nearest 0.05 s, when the car reaches `distance`. */
 function timeAt(route: Parameters<typeof position>[0], distance: number, knots: readonly number[]): number {
@@ -32,7 +34,7 @@ function timeAt(route: Parameters<typeof position>[0], distance: number, knots: 
       high = middle;
     }
   }
-  return Math.round(20 * high) / 20;
+  return roundSymmetric(20 * high) / 20;
 }
 
 export class MeanValueTheoremView extends LessonView {
@@ -184,7 +186,7 @@ export class MeanValueTheoremView extends LessonView {
 
     this.plot.onDrag((x) => {
       model.timer.isPlayingProperty.value = false;
-      time.value = Math.max(0, Math.min(tripDuration, Math.round(20 * x) / 20));
+      time.value = Math.max(0, Math.min(tripDuration, roundSymmetric(20 * x) / 20));
     });
     this.timeHandle = this.plot.handle({
       cursor: "ew-resize",
@@ -192,7 +194,7 @@ export class MeanValueTheoremView extends LessonView {
         model.timer.isPlayingProperty.value = false;
       },
       drag: (x) => {
-        time.value = Math.max(0, Math.min(tripDuration, Math.round(20 * this.plot.modelX(x)) / 20));
+        time.value = Math.max(0, Math.min(tripDuration, roundSymmetric(20 * this.plot.modelX(x)) / 20));
       },
       readout: () =>
         `t = ${format(time.value)} s · s = ${format(position(model.route.value, time.value, model.knots.value))} m`,
@@ -214,6 +216,7 @@ export class MeanValueTheoremView extends LessonView {
                 [strings.routePointStringProperty],
                 () => `${strings.routePointStringProperty.value} ${format(knotTime)} s`,
               ),
+              direction: "upDown",
               step: (_dx, dy) => model.moveKnot(i + 1, (model.knots.value[i + 1] ?? 0) + dy * KNOT_KEY_STEP),
             },
           }),
@@ -240,6 +243,11 @@ export class MeanValueTheoremView extends LessonView {
     }
     const vehicle = new Node({
       y: 13,
+      tagName: "div",
+      ariaRole: "application",
+      focusable: true,
+      accessibleName: strings.carHandleStringProperty,
+      accessibleNameBehavior: (_node, nodeOptions, name) => ({ ...nodeOptions, ariaLabel: name }),
       children: [
         new Rectangle(-11, -6, 23, 16, { fill: Colors.accentColorProperty, cornerRadius: 3 }),
         new Rectangle(-5, -11, 13, 9, { fill: Colors.accentColorProperty, cornerRadius: 3 }),
@@ -248,7 +256,6 @@ export class MeanValueTheoremView extends LessonView {
       ],
     });
     road.addChild(vehicle);
-    // Pointer-only: the time slider owns the keyboard path for the same quantity.
     vehicle.cursor = "ew-resize";
     vehicle.touchArea = Shape.rect(-22, -20, 44, 44);
     vehicle.mouseArea = Shape.rect(-14, -13, 28, 28);
@@ -264,10 +271,35 @@ export class MeanValueTheoremView extends LessonView {
         model.timer.timeProperty.value = timeAt(model.route.value, distance, model.knots.value);
       },
     });
-    vehicle.addInputListener(vehicleListener);
-    Multilink.multilink([model.route, model.timer.timeProperty, model.knots], (route, time, knots) => {
-      vehicle.x = 12 + ((width - 10) * position(route, time, knots)) / tripLength;
+    const keyboardListener = new KeyboardDragListener({
+      keyboardDragDirection: "leftRight",
+      dragDelta: CAR_KEYBOARD_STEP_METRES,
+      shiftDragDelta: CAR_KEYBOARD_STEP_METRES / 4,
+      positionProperty: {
+        get value() {
+          return new Vector2(position(model.route.value, model.timer.timeProperty.value, model.knots.value), 0);
+        },
+        set value(next: Vector2) {
+          model.timer.isPlayingProperty.value = false;
+          model.timer.timeProperty.value = timeAt(model.route.value, next.x, model.knots.value);
+        },
+      },
     });
+    vehicle.addInputListener(vehicleListener);
+    vehicle.addInputListener(keyboardListener);
+    vehicle.addDisposable({
+      dispose: () => {
+        vehicle.removeInputListener(keyboardListener);
+        vehicle.removeInputListener(vehicleListener);
+        keyboardListener.dispose();
+        vehicleListener.dispose();
+      },
+    });
+    vehicle.addDisposable(
+      Multilink.multilink([model.route, model.timer.timeProperty, model.knots], (route, time, knots) => {
+        vehicle.x = 12 + ((width - 10) * position(route, time, knots)) / tripLength;
+      }),
+    );
     const secant = text(strings.secantStringProperty, 14, 275);
     secant.fill = Colors.secondaryColorProperty;
     const tangent = text(strings.tangentStringProperty, 14, 275);

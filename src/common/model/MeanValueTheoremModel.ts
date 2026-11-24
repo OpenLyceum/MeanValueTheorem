@@ -1,5 +1,5 @@
 import { BooleanProperty, Property } from "scenerystack/axon";
-import { dotRandom } from "scenerystack/dot";
+import { dotRandom, roundSymmetric } from "scenerystack/dot";
 import type { TModel } from "scenerystack/joist";
 import { TimeModel } from "../TimeModel.js";
 
@@ -186,7 +186,7 @@ export class MeanValueTheoremModel implements TModel {
     }
     const low = knots[index - 1] ?? 0;
     const high = knots[index + 1] ?? tripLength;
-    const next = Math.max(low, Math.min(high, Math.round(value)));
+    const next = Math.max(low, Math.min(high, roundSymmetric(value)));
     if (next !== knots[index]) {
       this.knots.value = knots.map((knot, i) => (i === index ? next : knot));
     }
