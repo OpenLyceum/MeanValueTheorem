@@ -53,6 +53,11 @@
     "continuity": "Continuité",
     "differentiability": "Dérivabilité",
     "continuousAnswer": "Sur le trajet avec un point anguleux, les deux côtés du graphe de position se rejoignent à 5 s.",
-    "differentAnswer": "Sur le trajet avec un point anguleux, la position est continue. Les pentes à gauche et à droite diffèrent à 5 s."
+    "differentAnswer": "Sur le trajet avec un point anguleux, la position est continue. Les pentes à gauche et à droite diffèrent à 5 s.",
+    "custom": "Votre trajet : faites glisser les points",
+    "routePoint": "Point du trajet au temps",
+    "newChallenge": "Nouveau défi",
+    "challengePrompt": "Marquez un instant où la vitesse égale la vitesse moyenne.",
+    "near": "Une correspondance se trouve à moins d’un demi-pas de la marque."
   }
 }

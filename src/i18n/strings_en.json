@@ -53,6 +53,11 @@
     "continuity": "Continuity",
     "differentiability": "Differentiability",
     "continuousAnswer": "On the corner route, both sides of the position graph meet at 5 s.",
-    "differentAnswer": "On the corner route, position is continuous. The one-sided slopes differ at 5 s."
+    "differentAnswer": "On the corner route, position is continuous. The one-sided slopes differ at 5 s.",
+    "custom": "Your route: drag the points",
+    "routePoint": "Route point at time",
+    "newChallenge": "New challenge",
+    "challengePrompt": "Mark a time when the speed equals the average speed.",
+    "near": "A match lies within half a time step of the mark."
   }
 }
