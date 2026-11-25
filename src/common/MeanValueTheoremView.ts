@@ -6,6 +6,7 @@ import { StringUtils } from "scenerystack/phetcommon";
 import { Circle, DragListener, KeyboardDragListener, Line, Node, Rectangle } from "scenerystack/scenery";
 import { StringManager } from "../i18n/StringManager.js";
 import Colors from "../MeanValueTheoremColors.js";
+import { MAIN_PLOT_HEIGHT, ROAD_WIDTH, SPEED_PLOT_HEIGHT } from "../MeanValueTheoremConstants.js";
 import {
   button,
   type Choice,
@@ -39,9 +40,6 @@ const KNOT_KEY_STEP = 4;
 const CAR_KEYBOARD_STEP_METRES = 4;
 // Each arrow-key press moves a checkpoint by this fraction of the window (Shift: a quarter).
 const BOUND_KEY_FRACTION = 0.025;
-const MAIN_PLOT_HEIGHT = 225;
-const SPEED_PLOT_HEIGHT = 118;
-const ROAD_WIDTH = 596;
 type Handle = ReturnType<LessonView["plot"]["handle"]>;
 type Point = [number, number];
 

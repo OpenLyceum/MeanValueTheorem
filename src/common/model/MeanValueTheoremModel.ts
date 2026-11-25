@@ -1,17 +1,23 @@
 import { BooleanProperty, NumberProperty, Property } from "scenerystack/axon";
 import { dotRandom, roundSymmetric, toFixedNumber } from "scenerystack/dot";
 import type { TModel } from "scenerystack/joist";
+import {
+  BOUND_STEP as boundStep,
+  DEFAULT_KNOTS as defaultKnots,
+  MATCH_HALF_STEP as halfStep,
+  KNOT_SPACING as knotSpacing,
+  MINIMUM_GAP as minimumGap,
+  MATCH_TOLERANCE as tolerance,
+  tripDuration,
+  tripLength,
+} from "../../MeanValueTheoremConstants.js";
 import { TimeModel } from "../TimeModel.js";
 
-export const tripDuration = 10;
-export const tripLength = 100;
-const tolerance = 0.1;
-// The time controls move in 0.05 s steps; a mark this close to an exact match also counts.
-const halfStep = 0.025;
-/** The checkpoints stay at least this far apart. */
-const minimumGap = 0.5;
-/** Dragged checkpoints snap to multiples of this. */
-const boundStep = 0.05;
+export {
+  knotTimes,
+  tripDuration,
+  tripLength,
+} from "../../MeanValueTheoremConstants.js";
 
 /** The car routes of the Drive screen, as position against time. */
 export const routes = ["accelerating", "changing", "constant", "custom"] as const;
@@ -37,11 +43,6 @@ export type Graph = {
   readonly bounds: readonly [number, number];
   readonly breaks: readonly Break[];
 };
-
-/** The custom route passes through one position at each of these times (the ends stay fixed). */
-export const knotTimes = [0, 2.5, 5, 7.5, 10] as const;
-const knotSpacing = 2.5;
-const defaultKnots: readonly number[] = [0, 15, 35, 80, 100];
 
 /**
  * Tangents for a cubic Hermite curve through the knots (Fritsch–Butland): a harmonic mean of
