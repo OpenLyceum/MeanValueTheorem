@@ -28,6 +28,7 @@ jobs:
     with:
       run-architecture: true
       unused-mode: required
+      run-browser-tests: true
 
   compliance:
     uses: OpenLyceum/Baton/.github/workflows/shared-compliance-check.yml@main

@@ -30,6 +30,7 @@ Mean Value Theorem (`mean-value-theorem`) connects the secant over [a, b] with t
 ## Compliance carve-outs
 
 - `memory-leak:PlotHandle` — file-private drag handle inside the plot/lesson view; not exported for `describeDisposalLeaks`.
+- `.github/workflows/ci.yml` enables Baton's browser regression job for the Chromium pilot.
 
 ## Testing
 
