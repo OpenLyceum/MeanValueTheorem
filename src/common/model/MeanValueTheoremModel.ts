@@ -187,14 +187,20 @@ export function graphFor(id: GraphId, knots: readonly number[] = defaultKnots): 
   };
 }
 
-/** The slope of the secant over [a, b], or null when f is undefined at an end. */
+/** The slope of the secant over [a, b], or null when f is undefined at an end.
+ *
+ * @internal Exported for unit tests; not part of the application API.
+ */
 export function secantSlope(graph: Graph, a: number, b: number): number | null {
   const fa = graph.f(a);
   const fb = graph.f(b);
   return fa === null || fb === null ? null : (fb - fa) / (b - a);
 }
 
-/** Which hypothesis fails on [a, b]: continuity on the closed interval, then differentiability inside it. */
+/** Which hypothesis fails on [a, b]: continuity on the closed interval, then differentiability inside it.
+ *
+ * @internal Exported for unit tests; not part of the application API.
+ */
 export function hypothesisOn(graph: Graph, a: number, b: number): Hypothesis {
   const inside = (x: number, closed: boolean) => (closed ? a <= x && x <= b : a < x && x < b);
   if (graph.breaks.some(({ x, kind }) => (kind === "jump" || kind === "pole") && inside(x, true))) {
@@ -206,6 +212,8 @@ export function hypothesisOn(graph: Graph, a: number, b: number): Hypothesis {
 /**
  * The points c in (a, b) where f′(c) equals the secant slope, by sign changes on a fine grid,
  * skipping grid cells where f′ is undefined; "all" when f′ matches the slope everywhere.
+ *
+ * @internal Exported for unit tests; not part of the application API.
  */
 export function matches(graph: Graph, a: number, b: number): "all" | readonly number[] {
   const slope = secantSlope(graph, a, b);
